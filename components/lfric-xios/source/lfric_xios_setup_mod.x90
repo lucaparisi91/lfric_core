@@ -938,6 +938,12 @@ contains
     type(domain_type) :: domain
     real(r_def), parameter :: vert_loc_tol = 1e-8_r_def
 
+    ! Temporary arrays storing storing processed 
+    ! coordinates. Intended to be passed to xios
+    real(dp_xios) , allocatable :: lon_bounds_xios(:,:)
+
+
+    
     ! Factor to convert coords from radians to degrees if needed
     ! set as 1.0 for planar mesh
     real(kind=r_def) :: r2d
@@ -991,6 +997,7 @@ contains
 
     allocate( lat_data(local_domain_size) )
     allocate( lon_data(local_domain_size) )
+    
 
     lat_data = proxy_coord_output(2)%data(1: local_undf(1):n_levels) * r2d
     lon_data = proxy_coord_output(1)%data(1: local_undf(1):n_levels) * r2d
@@ -1059,6 +1066,10 @@ contains
       lon_bounds = lon_bounds * xyz_scaling_factor
     end if
 
+    ! Shift longitudes by 180 degrees, as xios expects longitudes between 0 and 360 degreeds.
+    lon_bounds_xios = abs(lon_bounds + 180 * 1_r_def)
+    lon_data = abs(lon_data + 180 * 1_r_def)
+    
     call xios_get_handle("domain_definition", domain_definition)
     if (xios_is_valid_domain(trim(domain_id))) then
       call log_event( "XIOS domain ['"//trim(domain_id)//"'] is already " // &
@@ -1073,7 +1084,7 @@ contains
                                type='unstructured', nvertex=nverts )
     call xios_set_domain_attr( trim(domain_id), lonvalue_1d=lon_data, &
                                latvalue_1d=lat_data )
-    call xios_set_domain_attr( trim(domain_id), bounds_lon_1d=lon_bounds, &
+    call xios_set_domain_attr( trim(domain_id), bounds_lon_1d=lon_bounds_xios, &
                                bounds_lat_1d=lat_bounds )
 
     ! Consolidate the domains into a single 2D UGRID mesh
