@@ -84,7 +84,7 @@ def setup_script_cray(build_config: BuildConfig,
 
     # Fast debug
     # ==========
-    ftn.add_flags(["-O2", "-hflex_mp=strict"], "fast-debug")
+    ftn.add_flags(["-O2", ""], "fast-debug")
     if ftn.get_version() >= (15, 0):
         ftn.add_flags(["-G2"], "fast-debug")
     else:

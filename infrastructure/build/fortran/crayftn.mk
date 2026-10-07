@@ -22,21 +22,21 @@ F_MOD_DESTINATION_ARG     = -J
 F_MOD_SOURCE_ARG          = -p
 
 FFLAGS_OPENMP  = -h omp
-LDFLAGS_OPENMP = -h omp
+LDFLAGS_OPENMP = -h omp 
 
-FFLAGS_COMPILER           =
+FFLAGS_COMPILER           = 
 FFLAGS_NO_OPTIMISATION    = -O0
-FFLAGS_SAFE_OPTIMISATION  = -O2 -hflex_mp=strict
+FFLAGS_SAFE_OPTIMISATION  = -O2
 FFLAGS_RISKY_OPTIMISATION = -O3 -hipa2
 
 #Cray has debug levels tied to optimisation levels
 ifeq ($(shell expr ${CRAYFTN_VERSION} \>= 015000000), 1)
   ifeq "$(PROFILE)" "full-debug"
-    FFLAGS_DEBUG    = -G0
+    FFLAGS_DEBUG    = -g
   else ifeq "$(PROFILE)" "fast-debug"
-    FFLAGS_DEBUG    = -G2
+    FFLAGS_DEBUG    = -g
   else ifeq "$(PROFILE)" "production"
-    FFLAGS_DEBUG    =
+    FFLAGS_DEBUG    = -g
   endif
 endif
 
@@ -73,7 +73,7 @@ ifeq "$(PROFILE)" "full-debug"
   # -Ktrap=fp : Trap on divz, inv, or ovf exceptions
   LDFLAGS_COMPILER = -Ktrap=fp
 else
-  LDFLAGS_COMPILER =
+  LDFLAGS_COMPILER = 
 endif
 
 DEPRULE_FLAGS = -moduleobjects

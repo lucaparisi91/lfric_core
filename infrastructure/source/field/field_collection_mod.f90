@@ -132,27 +132,28 @@ subroutine add_field(self, field)
   class(pure_abstract_field_type), intent(in) :: field
   integer(i_def) :: hash
   character(len=str_def) :: name
+  character(len=str_def) :: trim_name
 
   name = get_field_name(field)
+  trim_name = trim(name)
 
   ! Check field name is valid, if not then exit with error
-  if ( trim(name) == 'none' .OR. trim(name) == 'unset') then
+  if ( trim_name == 'none' .OR. trim_name == 'unset') then
     write(log_scratch_space, '(3A)') &
-    'Field name [', trim(name), &
+    'Field name [', trim_name, &
     '] is an invalid field name, please choose a unique field name.'
     call log_event(log_scratch_space, LOG_LEVEL_ERROR)
   end if
 
   ! Check if field exists in collection already, if it does, exit with error
-  if ( self%field_exists( trim(name) ) ) then
+  if ( self%field_exists( trim_name ) ) then
     write(log_scratch_space, '(4A)') &
-      'Field [', trim(name), &
+      'Field [', trim_name, &
       '] already exists in field collection: ', trim(self%name)
     call log_event( log_scratch_space, LOG_LEVEL_ERROR)
   end if
-
   ! Finished checking - so the field must be good to add - so add it
-  hash = mod(sum_string(trim(name)),self%get_table_len())
+  hash = mod(sum_string(trim_name),self%get_table_len())
   call self%field_list(hash)%insert_item( field )
 
 end subroutine add_field
@@ -170,12 +171,15 @@ function field_exists(self, field_name) result(exists)
   logical(l_def)           :: exists
   integer(i_def)           :: hash
   character(len=str_def)   :: name
+  character(len=str_def)   :: trim_field_name
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
 
+  trim_field_name = trim(field_name)
+
   ! Calculate the hash of the field being searched for
-  hash = mod(sum_string(trim(field_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_name),self%get_table_len())
 
   ! start at the head of the mesh collection linked list
   loop => self%field_list(hash)%get_head()
@@ -189,7 +193,7 @@ function field_exists(self, field_name) result(exists)
     end if
     ! otherwise search list for the name of field we want
     name = get_field_name(loop%payload)
-    if ( trim(field_name) == trim(name) ) then
+    if ( trim_field_name == trim(name) ) then
       exists=.true.
       exit
     end if
@@ -259,9 +263,11 @@ subroutine remove_field(self, field_name)
   integer(i_def) :: hash
 
   character(len=str_def)   :: name
+  character(len=str_def)   :: trim_field_name
 
+  trim_field_name = trim(field_name)
   ! Calculate the hash of the field being removed
-  hash = mod(sum_string(trim(field_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_name),self%get_table_len())
 
   ! start at the head of the field collection linked list
   loop => self%field_list(hash)%get_head()
@@ -271,13 +277,13 @@ subroutine remove_field(self, field_name)
     ! field, fail with an error
     if ( .not. associated(loop) ) then
       write(log_scratch_space, '(4A)') 'remove_field: No field [', &
-         trim(field_name), '] in field collection: ', trim(self%name)
+         trim_field_name, '] in field collection: ', trim(self%name)
       call log_event( log_scratch_space, LOG_LEVEL_ERROR)
     end if
     ! otherwise search list for the name of field we want
 
     name = get_field_name(loop%payload)
-    if ( trim(field_name) == trim(name) ) then
+    if ( trim_field_name == trim(name) ) then
       call self%field_list(hash)%remove_item(loop)
       exit
     end if
@@ -301,6 +307,7 @@ function get_next_item(self, start) result(item)
   type(linked_list_item_type), pointer :: item
   type(linked_list_item_type), pointer :: new_item => null()
   character(str_def) :: name
+  character(str_def) :: trim_name
   integer(i_def) :: i, hash
 
   if(associated(start))then
@@ -309,7 +316,8 @@ function get_next_item(self, start) result(item)
     if (.not.associated(new_item) ) then
       ! Next item is in the following linked list. Calculate the hash of 'start'
       name = get_field_name(start%payload)
-      hash = mod(sum_string(trim(name)),self%get_table_len())
+      trim_name = trim(name)
+      hash = mod(sum_string(trim_name),self%get_table_len())
       ! Find next valid item - or end of collection
       do i = hash+1, self%get_table_len()-1
         new_item => self%field_list(i)%get_head()
@@ -346,14 +354,17 @@ subroutine get_real32_field(self, field_name, field)
   character(*), intent(in) :: field_name
 
   character(len=str_def) :: name
+  character(len=str_def) :: trim_field_name
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
 
   integer(i_def) :: hash
 
+  trim_field_name = trim(field_name)
+
   ! Calculate the hash of the field being searched for
-  hash = mod(sum_string(trim(field_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_name),self%get_table_len())
 
   ! start at the head of the mesh collection linked list
   loop => self%field_list(hash)%get_head()
@@ -363,7 +374,7 @@ subroutine get_real32_field(self, field_name, field)
     ! field, fail with an error
     if ( .not. associated(loop) ) then
       write(log_scratch_space, '(4A)') 'get_field: No 32-bit field [', &
-         trim(field_name), '] in field collection: ', trim(self%name)
+         trim_field_name, '] in field collection: ', trim(self%name)
       call log_event( log_scratch_space, LOG_LEVEL_ERROR)
     end if
     ! otherwise search list for the name of field we want
@@ -372,12 +383,12 @@ subroutine get_real32_field(self, field_name, field)
     ! 'cast' to the field_type
     select type(listfield => loop%payload)
       type is (field_real32_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield
           exit
       end if
       type is (field_real32_pointer_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield%field_ptr
           exit
       end if
@@ -401,14 +412,16 @@ subroutine get_real64_field(self, field_name, field)
   character(*), intent(in) :: field_name
 
   character(len=str_def) :: name
+  character(len=str_def) :: trim_field_name
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
 
   integer(i_def) :: hash
 
+  trim_field_name = trim(field_name)
   ! Calculate the hash of the field being searched for
-  hash = mod(sum_string(trim(field_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_name),self%get_table_len())
 
   ! start at the head of the mesh collection linked list
   loop => self%field_list(hash)%get_head()
@@ -418,7 +431,7 @@ subroutine get_real64_field(self, field_name, field)
     ! field, fail with an error
     if ( .not. associated(loop) ) then
       write(log_scratch_space, '(4A)') 'get_field: No 64-bit field [', &
-         trim(field_name), '] in field collection: ', trim(self%name)
+         trim_field_name, '] in field collection: ', trim(self%name)
       call log_event( log_scratch_space, LOG_LEVEL_ERROR)
     end if
     ! otherwise search list for the name of field we want
@@ -427,12 +440,12 @@ subroutine get_real64_field(self, field_name, field)
     ! 'cast' to the field_type
     select type(listfield => loop%payload)
       type is (field_real64_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield
           exit
       end if
       type is (field_real64_pointer_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield%field_ptr
           exit
       end if
@@ -456,14 +469,16 @@ subroutine get_integer_field(self, field_name, field)
   character(*), intent(in) :: field_name
 
   character(len=str_def) :: name
+  character(len=str_def) :: trim_field_name
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
 
   integer(i_def) :: hash
 
+  trim_field_name = trim(field_name)
   ! Calculate the hash of the field being searched for
-  hash = mod(sum_string(trim(field_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_name),self%get_table_len())
 
   ! start at the head of the field collection linked list
   loop => self%field_list(hash)%get_head()
@@ -472,7 +487,7 @@ subroutine get_integer_field(self, field_name, field)
     ! If list is empty or we're at the end of list and we didn't find the
     ! field, fail with an error
     if ( .not. associated(loop) ) then
-      write(log_scratch_space, '(4A)') 'No integer field [', trim(field_name), &
+      write(log_scratch_space, '(4A)') 'No integer field [', trim_field_name, &
          '] in field collection: ', trim(self%name)
       call log_event( log_scratch_space, LOG_LEVEL_ERROR)
     end if
@@ -482,12 +497,12 @@ subroutine get_integer_field(self, field_name, field)
     ! 'cast' to the integer_field_type
     select type(listfield => loop%payload)
       type is (integer_field_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield
           exit
       end if
       type is (integer_field_pointer_type)
-      if ( trim(field_name) == trim(name) ) then
+      if ( trim_field_name == trim(name) ) then
           field => listfield%field_ptr
           exit
       end if
@@ -510,14 +525,15 @@ subroutine get_field_array(self, field_array_name, field_array)
   character(*),                    intent(in)  :: field_array_name
 
   character(len=str_def) :: name
+  character(len=str_def) :: trim_field_array_name
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
 
   integer(i_def) :: hash
-
+  trim_field_array_name = trim(field_array_name)
   ! Calculate the hash of the field being searched for
-  hash = mod(sum_string(trim(field_array_name)),self%get_table_len())
+  hash = mod(sum_string(trim_field_array_name),self%get_table_len())
 
   ! start at the head of the mesh collection linked list
   loop => self%field_list(hash)%get_head()
@@ -527,7 +543,7 @@ subroutine get_field_array(self, field_array_name, field_array)
     ! field, fail with an error
     if ( .not. associated(loop) ) then
       write(log_scratch_space, '(4A)') 'get_field: No field array [', &
-         trim(field_array_name), '] in field collection: ', trim(self%name)
+         trim_field_array_name, '] in field collection: ', trim(self%name)
       call log_event( log_scratch_space, LOG_LEVEL_ERROR)
     end if
     ! otherwise search list for the name of field we want
@@ -536,7 +552,7 @@ subroutine get_field_array(self, field_array_name, field_array)
     ! 'cast' to the field_array_type
     select type(listfield => loop%payload)
       type is (field_array_type)
-        if ( trim(field_array_name) == trim(name) ) then
+        if ( trim_field_array_name == trim(name) ) then
           field_array => listfield
           exit
         end if

@@ -127,6 +127,7 @@ contains
 
     type(xios_date)       :: context_start
     integer(i_def)        :: i, j, n_fields
+    class(field_parent_type), pointer :: fld
 
     ! Read time data from file
     self%time_data = read_time_data(trim(file_path))

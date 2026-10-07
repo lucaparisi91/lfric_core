@@ -187,19 +187,21 @@ function namelist_exists( self, name, profile_name ) result( exists )
   integer(i_def) :: hash
 
   character(str_def) :: full_name
+  character(str_def) :: name_trim
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
   type(namelist_type),         pointer :: namelist_obj => null()
 
   ! Calculate the hash of the namelist being searched for
+  name_trim = trim(name)
   if ( present(profile_name) ) then
-    full_name = trim(name)//':'//trim(profile_name)
+    full_name = name_trim//':'//trim(profile_name)
   else
-    full_name = trim(name)
+    full_name = name_trim
   end if
 
-  hash = mod( sum_string(trim(name)), self%get_table_len() )
+  hash = mod( sum_string(name_trim), self%get_table_len() )
 
   ! Start at the head of the linked list identified
   ! by the hash number.
@@ -248,6 +250,7 @@ function get_next_item( self, start ) result( item )
   type(linked_list_item_type), pointer :: new_item => null()
 
   character(str_def) :: listname
+  character(str_def) :: trim_listname
   integer(i_def)     :: hash
   integer(i_def)     :: i
 
@@ -261,10 +264,11 @@ function get_next_item( self, start ) result( item )
       ! Calculate the hash of 'start'
       select type( payload => start%payload)
       type is (namelist_type)
-        listname = payload%get_listname()
-      end select
+      listname = payload%get_listname()
+    end select
 
-      hash = mod( sum_string(trim(listname)), self%get_table_len() )
+      trim_listname = trim(listname)
+      hash = mod( sum_string(trim_listname), self%get_table_len() )
 
       ! Find next valid item - or end of collection
       do i=hash+1, self%get_table_len()-1
@@ -321,6 +325,7 @@ function get_namelist( self, name, profile_name ) result( namelist_obj )
   type(namelist_type), pointer :: namelist_obj
 
   character(str_def) :: full_name
+  character(str_def) :: name_trim
 
   ! Pointer to linked list - used for looping through the list
   type(linked_list_item_type), pointer :: loop => null()
@@ -328,15 +333,15 @@ function get_namelist( self, name, profile_name ) result( namelist_obj )
   integer(i_def) :: hash
 
   nullify(namelist_obj)
-
+  name_trim = trim(name)
   if ( present(profile_name) ) then
-    full_name = trim(name) // ':' // trim(profile_name)
+    full_name = name_trim // ':' // trim(profile_name)
   else
-    full_name = trim(name)
+    full_name = name_trim
   end if
 
   ! Calculate the hash of the namelist being searched for.
-  hash = mod( sum_string(trim(name)), self%get_table_len() )
+  hash = mod( sum_string(name_trim), self%get_table_len() )
 
   ! Start at the head of the linked list identified by the hash.
   loop => self%namelist_list(hash)%get_head()

@@ -872,7 +872,9 @@ function get_hash(self, key) result(hash)
   class(key_value_collection_type), intent(in) :: self
   character(*), intent(in) :: key
   integer(i_def) :: hash
-  hash = mod(sum_string(trim(key)),self%get_table_len())
+  character(str_def) :: trim_key
+  trim_key = trim(key)
+  hash = mod(sum_string(trim_key),self%get_table_len())
 end function get_hash
 
 !> Returns the next item in the collection

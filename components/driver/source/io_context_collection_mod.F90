@@ -93,17 +93,18 @@ contains
 
     integer(i_def)  :: hash
     character(str_def) :: name
+    character(str_def) :: trim_name
 
     name = get_context_name(context)
-
-    if (this%context_exists(trim(name))) then
+    trim_name = trim(name)
+    if (this%context_exists(trim_name)) then
       write(log_scratch_space, '(4A)') &
-              'Context name [', trim(name), &
+              'Context name [', trim_name, &
               '] already exists in collection: ', trim(this%name)
       call log_event(log_scratch_space, LOG_LEVEL_ERROR)
     end if
 
-    hash = mod(hash_string(trim(name)), this%get_table_len())
+    hash = mod(hash_string(trim_name), this%get_table_len())
     call this%context_list(hash)%insert_item(context)
 
   end subroutine add_context
@@ -118,19 +119,21 @@ contains
     type(linked_list_item_type), pointer :: loop => null()
     integer(i_def) :: hash
     character(str_def) :: name
+    character(str_def) :: trim_context_name
 
-    hash = mod(hash_string(trim(context_name)), this%get_table_len())
+    trim_context_name = trim(context_name)
+    hash = mod(hash_string(trim_context_name), this%get_table_len())
 
     loop => this%context_list(hash)%get_head()
 
     do
       if (.not. associated(loop)) then
         write(log_scratch_space, '(4A)') 'remove_context: No IO context [', &
-          trim(context_name), '] in context collection: ', trim(this%name)
+          trim_context_name, '] in context collection: ', trim(this%name)
         call log_event( log_scratch_space, LOG_LEVEL_ERROR)
       end if
       name = get_context_name(loop%payload)
-      if( trim(context_name) == trim(name)) then
+      if( trim_context_name == trim(name)) then
         call this%context_list(hash)%remove_item(loop)
         exit
       end if
@@ -149,14 +152,16 @@ contains
     character(*), intent(in) :: context_name
 
     character(str_def) :: name
+    character(str_def) :: trim_context_name
 
     ! Pointer to linked list - used for looping through the list
     type(linked_list_item_type), pointer :: loop => null()
 
     integer(i_def) :: hash
 
+    trim_context_name = trim(context_name)
     ! Calculate hash of context to be searched for
-    hash = mod(hash_string(trim(context_name)), this%get_table_len())
+    hash = mod(hash_string(trim_context_name), this%get_table_len())
 
     ! Start at the head of the collection linked list
     loop => this%context_list(hash)%get_head()
@@ -166,7 +171,7 @@ contains
       ! context, fail with an error
       if( .not. associated(loop) ) then
         write(log_scratch_space, '(4A)') 'Get io_context: No lfric_xios_context [', &
-                trim(context_name), '] in context collection: ', trim(this%name)
+                trim_context_name, '] in context collection: ', trim(this%name)
         call log_event(log_scratch_space, LOG_LEVEL_ERROR)
       end if
 
@@ -176,7 +181,7 @@ contains
 
       select type(listcontext => loop%payload)
       type is (lfric_xios_context_type)
-        if ( trim(context_name) == trim(name)) then
+        if ( trim_context_name == trim(name)) then
           context => listcontext
           exit
         end if
@@ -194,14 +199,16 @@ contains
     character(*), intent(in) :: context_name
 
     character(str_def) :: name
+    character(str_def) :: trim_context_name
 
     ! Pointer to linked list - used for looping through the list
     type(linked_list_item_type), pointer :: loop => null()
 
     integer(i_def) :: hash
 
+    trim_context_name = trim(context_name)
     ! Calculate hash of context to be searched for
-    hash = mod(hash_string(trim(context_name)), this%get_table_len())
+    hash = mod(hash_string(trim_context_name), this%get_table_len())
 
     ! Start at the head of the collection linked list
     loop => this%context_list(hash)%get_head()
@@ -211,7 +218,7 @@ contains
       ! context, fail with an error
       if( .not. associated(loop) ) then
         write(log_scratch_space, '(4A)') 'Get field: No empty_io_context [', &
-          trim(context_name), '] in context collection: ', trim(this%name)
+          trim_context_name, '] in context collection: ', trim(this%name)
         call log_event(log_scratch_space, LOG_LEVEL_ERROR)
       end if
 
@@ -221,7 +228,7 @@ contains
 
       select type(listcontext => loop%payload)
         type is (empty_io_context_type)
-        if ( trim(context_name) == trim(name)) then
+        if ( trim_context_name == trim(name)) then
           context => listcontext
           exit
         end if
@@ -241,10 +248,12 @@ contains
     logical :: exists
     integer(i_def) :: hash
     character(len=str_def) :: name
+    character(str_def) :: trim_context_name
 
     type(linked_list_item_type), pointer :: loop => null()
 
-    hash = mod(hash_string(trim(context_name)), this%get_table_len())
+    trim_context_name = trim(context_name)
+    hash = mod(hash_string(trim_context_name), this%get_table_len())
 
     loop => this%context_list(hash)%get_head()
     do
@@ -253,7 +262,7 @@ contains
         exit
       end if
       name = get_context_name(loop%payload)
-      if( trim(context_name) == trim(name)) then
+      if( trim_context_name == trim(name)) then
         exists = .true.
         exit
       end if
